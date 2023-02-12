@@ -37,7 +37,6 @@ namespace x264_DR_Level_test
             string[] levelsArr = { "1", "1b", "1.1", "1.2", "1.3", "2", "2.1", "2.2", "3", "3.1", "3.2", "4", "4.1", "4.2", "5", "5.1", "5.2", "6", "6.1", "6.2" };
             string[] pix_fmtArr = { "yuv420p", "yuv422p", "yuv444p", "yuv420p10le", "yuv422p10le", "yuv444p10le" }; // All colorspaces
             
-
             string inputFilenameNoExt = inputFilename.Substring(0, inputFilename.Length - 4); // remove the last 4 characters from input: often ".mov"
 
             string ff = "ffmpeg -i " + inputFilename + " -c:v libx264 ";
