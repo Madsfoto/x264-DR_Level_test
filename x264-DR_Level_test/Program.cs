@@ -11,75 +11,50 @@ namespace x264_DR_Level_test
     {
         static void Main(string[] args)
         {
-            string inputFilename = "";
-            if (args.Length == 0)
-            {
-                Console.WriteLine("Defaulting to Source-FFv1.mkv, use 1st argument for other name");
-                Console.WriteLine("Press filename and enter for new source name OR just enter to create default files");
-                string consoleline = Console.ReadLine();
-                if(consoleline.Length==0)
-                {
-                    inputFilename = "Source-FFv1.mkv"; // what my standard source file happens to be named.
-                }
-                else
-                {
-                    inputFilename = consoleline;
-                }
-                
-            }
-            else
-            {
-                inputFilename = args[1];
-            }
-            string[] profileArr = { "baseline", "main", "high", "high10", "high422", "high444" }; // profile is the total color space and depth available 
-            //string[] presetArr = { "ultrafast", "superfast", "veryfast", "faster", "fast", "medium", "slow", "slower", "veryslow", "placebo" }; // every option
-            string[] presetArr = { "superfast"}; // ultrafast forces baseline profile. The results are identical for the other presets.
-            string[] levelsArr = { "1", "1b", "1.1", "1.2", "1.3", "2", "2.1", "2.2", "3", "3.1", "3.2", "4", "4.1", "4.2", "5", "5.1", "5.2", "6", "6.1", "6.2" };
-            string[] pix_fmtArr = { "yuv420p", "yuv422p", "yuv444p", "yuv420p10le", "yuv422p10le", "yuv444p10le" }; // All colorspaces
-            
-            string inputFilenameNoExt = inputFilename.Substring(0, inputFilename.Length - 4); // remove the last 4 characters from input: often ".mov"
+            Console.WriteLine("Creating a bat file with all the profiles, levels, pixel formats and containers that H.264 supports in 1080p and 2160p");
+            Console.WriteLine("By generating testsrc we get a known good video output and are therefore independent of any video on the system");
 
-            string ff = "ffmpeg -i " + inputFilename + " -c:v libx264 ";
-            string profileStr = "-profile:v ";
-            string presetStr = "-preset ";
-            string levelStr = "-level:v ";
-            string CRFStr = "-crf 51";
-            string pix_fmtStr = "-pix_fmt ";
+            string[] profileArr = { "baseline", "main", "high", "high10", "high422", "high444" }; // profile is the total color space and depth available 
+            string[] levelsArr = new string[] { "4.2", "5", "5.1", "5.2", "6", "6.1", "6.2" };
+
+            string[] pix_fmtArr = new string[] { "yuv420p", "yuv422p", "yuv444p", "yuv420p10le", "yuv422p10le", "yuv444p10le" }; // All colorspaces
+            string[] resolutionArr = new string[] { "1920x1080", "3840x2160" };
+            string[] containerArr = new string[] { ".mov", ".mp4", ".mxf", ".mts", ".mkv" };
+
+            string ff = "ffmpeg -n -f lavfi -i testsrc=size=";
+            string codec = "-c:v libx264";
+            string pix_fmtStr = "-pix_fmt";
             string noaudio = "-an";
-            
+            string time = "-t 30";
+            string profileStr = "-profile:v";
+            string presetStr = "-preset superfast";
+            string levelStr = "-level:v";
+
 
             List<string> writeStrList = new List<string>();
-            string outputFilename = "";
 
             for (int profileInt = 0; profileInt < profileArr.Length; profileInt++)
             {
-                for (int presetInt = 0; presetInt < presetArr.Length; presetInt++)
+                for (int levelsInt = 0; levelsInt < levelsArr.Length; levelsInt++)
                 {
-                    for (int levelsInt = 0; levelsInt < levelsArr.Length; levelsInt++)
+                    for (int pix_fmtInt = 0; pix_fmtInt < pix_fmtArr.Length; pix_fmtInt++)
                     {
-                        for (int pix_fmtInt = 0; pix_fmtInt < pix_fmtArr.Length; pix_fmtInt++)
+                        for (int resolutionInt = 0; resolutionInt < resolutionArr.Length; resolutionInt++)
                         {
-
-                            string FF_encode_cmd = ff + profileStr + profileArr[profileInt] + " " + presetStr + presetArr[presetInt] + " " + 
-                                levelStr + levelsArr[levelsInt] + " " + pix_fmtStr + pix_fmtArr[pix_fmtInt]+ " "+CRFStr + " "+noaudio;
-
-                            
-                            outputFilename = inputFilenameNoExt + "_" + profileInt + profileArr[profileInt] + "_" + 
-                                presetInt + presetArr[presetInt] + "_" + "L" + levelsArr[levelsInt] + "_" + pix_fmtArr[pix_fmtInt] + ".mov";
-
-                            writeStrList.Add(FF_encode_cmd + " " + outputFilename);
-
-
+                            for (int containerInt = 0; containerInt < containerArr.Length; containerInt++)
+                            {
+                                string ffEncode = ff+resolutionArr[resolutionInt]+ " "+ codec+ " "+ presetStr+ " "+ profileStr+ " "+ profileArr[profileInt]+ " "+ levelStr+ " "+ levelsArr[levelsInt]+ " "+ pix_fmtStr+ " "+ pix_fmtArr[pix_fmtInt]+ " "+ noaudio+ " "+ time+ " ";
+                                string outputFilename = "testsrc_"+ resolutionArr[resolutionInt]+ "_"+ profileArr[profileInt]+ "_"+ levelsArr[levelsInt]+ "_"+ pix_fmtArr[pix_fmtInt]+ containerArr[containerInt];
+                                writeStrList.Add(ffEncode + outputFilename);
+                            }
                         }
-
-
                     }
-
-                    File.WriteAllLines("0-" + profileInt + profileArr[profileInt] + "-" + presetInt + presetArr[presetInt] + ".bat", writeStrList);
-                    writeStrList.Clear();
                 }
             }
-
-            }
+            File.WriteAllLines("0.bat", writeStrList);
+        }
     }
 }
+
+
+
